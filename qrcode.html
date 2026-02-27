@@ -1,0 +1,533 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.5, user-scalable=yes">
+  <title>灵动 · 文本转二维码</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+    }
+
+    body {
+      min-height: 100vh;
+      background: linear-gradient(145deg, #f6f9fc 0%, #eef2f7 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 1.5rem;
+    }
+
+    .card {
+      background: rgba(255, 255, 255, 0.9);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      border-radius: 2.5rem;
+      box-shadow: 0 25px 45px -12px rgba(0, 32, 64, 0.25), 
+                  0 2px 8px rgba(0, 0, 0, 0.03);
+      padding: 2.2rem 2rem;
+      width: 100%;
+      max-width: 560px;
+      transition: all 0.2s ease;
+      border: 1px solid rgba(255, 255, 255, 0.5);
+    }
+
+    h2 {
+      font-size: 2rem;
+      font-weight: 600;
+      letter-spacing: -0.02em;
+      color: #0b2b3f;
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+      margin-bottom: 0.25rem;
+    }
+
+    h2 span {
+      background: #1e6f9f;
+      color: white;
+      font-size: 0.9rem;
+      font-weight: 500;
+      padding: 0.2rem 0.7rem;
+      border-radius: 30px;
+      margin-left: 0.5rem;
+      background: linear-gradient(135deg, #1e6f9f, #1a4e6f);
+    }
+
+    .sub {
+      color: #4d6575;
+      font-size: 0.95rem;
+      margin-bottom: 1.8rem;
+      font-weight: 400;
+      border-left: 3px solid #1e6f9f;
+      padding-left: 1rem;
+      background: rgba(30, 111, 159, 0.04);
+      border-radius: 0 8px 8px 0;
+    }
+
+    textarea {
+      width: 100%;
+      padding: 1.2rem 1.4rem;
+      font-size: 1.1rem;
+      border: 2px solid #dbe4ed;
+      border-radius: 2rem;
+      background: #ffffff;
+      box-shadow: inset 0 2px 5px rgba(0,0,0,0.02);
+      resize: vertical;
+      transition: 0.15s;
+      line-height: 1.5;
+      color: #102a3c;
+      font-weight: 450;
+    }
+
+    textarea:focus {
+      border-color: #1e6f9f;
+      outline: none;
+      box-shadow: 0 0 0 4px rgba(30, 111, 159, 0.15);
+    }
+
+    textarea::placeholder {
+      color: #9aafbf;
+      font-weight: 300;
+    }
+
+    .button-group {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.9rem;
+      margin: 1.8rem 0 2rem 0;
+      justify-content: center;
+    }
+
+    .btn {
+      flex: 1 1 auto;
+      min-width: 150px;
+      background: white;
+      border: none;
+      padding: 0.85rem 1.2rem;
+      font-size: 1.1rem;
+      font-weight: 570;
+      border-radius: 3rem;
+      background: #ffffff;
+      box-shadow: 0 8px 18px -8px rgba(0,45,75,0.15);
+      color: #1a4e6f;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+      border: 1px solid rgba(30, 111, 159, 0.2);
+      backdrop-filter: blur(4px);
+      letter-spacing: 0.3px;
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, #1a4e6f, #266489);
+      color: white;
+      border: none;
+      box-shadow: 0 10px 20px -8px #1a4e6f80;
+    }
+
+    .btn-primary:hover {
+      background: linear-gradient(135deg, #1e5f82, #1f6d94);
+      transform: scale(1.02);
+      box-shadow: 0 15px 25px -8px #0e3f5b;
+    }
+
+    .btn-secondary:hover {
+      background: #ecf3fa;
+      border-color: #1e6f9f;
+      transform: translateY(-2px);
+    }
+
+    .canvas-container {
+      background: #ffffff;
+      border-radius: 2rem;
+      padding: 1.5rem;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      box-shadow: inset 0 0 0 1px rgba(0,0,0,0.02), 0 15px 25px -16px #0f2e40;
+      margin-bottom: 1.2rem;
+      border: 1px solid rgba(255, 255, 255, 0.6);
+    }
+
+    canvas {
+      display: block;
+      width: 100%;
+      max-width: 250px;
+      height: auto;
+      border-radius: 1.2rem;
+      box-shadow: 0 5px 12px rgba(0, 30, 50, 0.1);
+      background: white;
+      transition: opacity 0.2s;
+    }
+
+    .hint {
+      text-align: center;
+      color: #587a92;
+      font-size: 0.9rem;
+      margin-top: 0.5rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.4rem;
+      background: rgba(255,255,255,0.5);
+      padding: 0.4rem 1.2rem;
+      border-radius: 50px;
+      width: fit-content;
+      margin-left: auto;
+      margin-right: auto;
+      backdrop-filter: blur(2px);
+    }
+
+    .hint i {
+      font-style: normal;
+      font-size: 1.1rem;
+    }
+
+    footer {
+      margin-top: 1rem;
+      font-size: 0.75rem;
+      color: #8ba0b2;
+      text-align: center;
+    }
+
+    /* 小屏适配 */
+    @media (max-width: 450px) {
+      .card { padding: 1.6rem 1.2rem; }
+      h2 { font-size: 1.7rem; }
+      .btn { min-width: 130px; padding: 0.75rem 0.5rem; }
+      .button-group { gap: 0.6rem; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="card">
+  <h2>
+    ✦ 文本转二维码
+    <span>离线</span>
+  </h2>
+  <div class="sub">自由输入 · 瞬间生成 · 高清保存</div>
+
+  <!-- 文本输入区 -->
+  <textarea id="textInput" rows="4" placeholder="输入文字、网址、名片信息……">你好，世界！✨ 用二维码传递信息</textarea>
+
+  <!-- 操作按钮组 -->
+  <div class="button-group">
+    <button class="btn btn-primary" id="generateBtn">
+      <span>⚡</span> 生成二维码
+    </button>
+    <button class="btn btn-secondary" id="downloadBtn">
+      <span>⬇️</span> 下载 PNG
+    </button>
+  </div>
+
+  <!-- 二维码画布展示区 -->
+  <div class="canvas-container">
+    <canvas id="qrCanvas" width="250" height="250"></canvas>
+  </div>
+
+  <div class="hint">
+    <i>📌</i> 支持中文 / 表情 / 换行 · 黑色像素干净易扫
+  </div>
+  <footer>点击生成 • 右键画布也可保存</footer>
+</div>
+
+<!-- 轻量级二维码核心库 (qrcode 支持 UTF-8/中文/Emoji) -->
+<script src="./qrcode.min.js"></script>
+
+<script>
+  (function() {
+    // 获取 DOM 元素
+    const textarea = document.getElementById('textInput');
+    const canvas = document.getElementById('qrCanvas');
+    const generateBtn = document.getElementById('generateBtn');
+    const downloadBtn = document.getElementById('downloadBtn');
+
+    // 默认生成的示例文本 (展示中文支持)
+    const DEFAULT_TEXT = "你好，世界！✨ 用二维码传递信息";
+
+    // 如果textarea为空，则设置默认值 (但之前html已经预填，这里做二次保障)
+    if (!textarea.value || textarea.value.trim() === '') {
+      textarea.value = DEFAULT_TEXT;
+    }
+
+    // 生成二维码函数 (使用Promise风格)
+    function generateQRCode(text) {
+      // 去除首尾空格后若为空，给出友好提示，并保留之前画布不变
+      if (!text || text.trim() === '') {
+        alert('🍃 请输入一些文本再生成二维码～');
+        return Promise.reject('empty text');
+      }
+
+      // 配置项：尺寸与画布一致，边距2，纯黑色块，纯白背景
+      const options = {
+        width: 250,
+        margin: 2,
+        color: {
+          dark: '#000000',   // 深色块黑色
+          light: '#ffffff'   // 浅色块白色
+        },
+        errorCorrectionLevel: 'M'    // 中等容错，适合大多数场景
+      };
+
+      // 调用库绘制到 canvas 上
+      return QRCode.toCanvas(canvas, text, options)
+        .then(() => {
+          console.log('✅ 二维码生成成功');
+        })
+        .catch((err) => {
+          console.warn('❌ 二维码生成失败:', err);
+          // 如果是因为文本过长，提示更友好的信息
+          if (err.message && (err.message.includes('too long') || err.message.includes('data overflow'))) {
+            alert('文本太长，请缩短一些再试 🙏');
+          } else {
+            alert('生成失败：' + (err.message || '未知错误'));
+          }
+          // 抛出错误，以便外部链式调用可以感知
+          throw err;
+        });
+    }
+
+    // 首次加载时，用当前textarea的文本生成二维码（展示默认）
+    generateQRCode(textarea.value).catch(() => {});
+
+    // 生成按钮点击事件
+    generateBtn.addEventListener('click', function() {
+      const inputText = textarea.value;
+      generateQRCode(inputText).catch(() => {});  // 错误已内部处理，无需额外操作
+    });
+
+    // 下载按钮点击事件 (保存为PNG)
+    downloadBtn.addEventListener('click', function() {
+      // 检查canvas是否拥有实际内容（简单检查画布是否有像素，但默认已有内容）
+      // 尝试获取画布数据，若画布完全透明或未绘制，仍会保存为空白图片；但我们的流程通常已有图
+      const dataURL = canvas.toDataURL('image/png');
+
+      // 创建临时下载链接
+      const link = document.createElement('a');
+      link.download = 'qrcode.png';            // 下载文件名
+      link.href = dataURL;
+      link.style.display = 'none';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+
+      // 轻提示 (可选)
+      // 为了不干扰，简单console，也可以加一个短暂弹窗，但为了清爽就不alert了
+      console.log('📸 已触发下载，请查看浏览器下载文件夹');
+    });
+
+    // 附加小优化：按回车(ctrl+enter)快速生成 (可选)
+    textarea.addEventListener('keydown', function(e) {
+      if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+        e.preventDefault();
+        generateBtn.click();
+      }
+    });
+
+    // 移动端友好：生成后自动收起键盘 (不强制，但轻点生成时键盘会收)
+    generateBtn.addEventListener('mousedown', function() {
+      textarea.blur();  // 让键盘收起，便于查看二维码
+    });
+
+    // 如果画布生成失败导致留白，可以保留之前的二维码，但上面的catch已经保留了之前的画面(不覆盖)
+    // 注意：QRCode.toCanvas失败时画布内容可能被清空或保持不变？库的行为可能清空或半渲染。
+    // 为了更稳健，可以在失败时保留旧的画布内容。但是目前库失败一般不会修改画布，或者画布可能被置空。
+    // 因此我们在调用generateQRCode的catch中不做额外操作，但可以用一个变量保存上一次成功的图像数据？
+    // 更优雅: 在每次成功之前先保存画布数据，失败时还原。但由于这个是增强体验，不是必须，避免复杂。
+    // 不过我们还是实现一个简单缓存：每次成功时用变量保存canvas图像数据，失败时尝试重绘上一次成功的图像。
+    // 但canvas恢复比较麻烦，因为涉及img数据。考虑到大多数情况不会失败（除非文本太长），且用户失败会alert，并可以修改文本再次生成。所以暂时不做缓存。
+    // 但为了完美，我们增加一个简单机制：在调用toCanvas之前先保存当前canvas内容为imageData，如果失败则恢复。
+    // 但保存/恢复需要putImageData，注意canvas尺寸一致。下面实现这个增强功能。
+    // 增加一个备份机制 (可选但为了代码干净且鲁棒，我们实现一下)
+    let lastValidImageData = null;  // 存储最近一次成功的图像数据
+
+    // 改造generateQRCode内部，使用备份恢复
+    const originalGenerate = generateQRCode;
+    window.generateQRCode = function(text) {  // 覆盖外部不可见，重写
+      if (!text || text.trim() === '') {
+        alert('🍃 请输入一些文本再生成二维码～');
+        return Promise.reject('empty');
+      }
+
+      // 保存当前画布内容（以防失败后丢失）
+      let previousImageData = null;
+      try {
+        const ctx = canvas.getContext('2d');
+        previousImageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+      } catch (e) {
+        // 跨域或空白画布可能报错，忽略
+      }
+
+      const options = { width: 250, margin: 2, color: { dark: '#000000', light: '#ffffff' }, errorCorrectionLevel: 'M' };
+
+      return QRCode.toCanvas(canvas, text, options)
+        .then(() => {
+          // 成功后保存一份当前图像数据到缓存
+          try {
+            const ctx = canvas.getContext('2d');
+            lastValidImageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+          } catch (e) {}
+          console.log('✅ 成功');
+        })
+        .catch((err) => {
+          console.warn('❌ 失败:', err);
+          // 恢复画布到之前的状态 (如果有之前成功备份则用备份，否则用刚才保存的previousImageData)
+          if (lastValidImageData) {
+            try {
+              const ctx = canvas.getContext('2d');
+              ctx.putImageData(lastValidImageData, 0, 0);
+            } catch (e) {}
+          } else if (previousImageData) {
+            // 如果还没有任何成功过(第一次失败)，则尝试恢复到生成前的样子
+            try {
+              const ctx = canvas.getContext('2d');
+              ctx.putImageData(previousImageData, 0, 0);
+            } catch (e) {}
+          }
+          // 友好错误提示
+          if (err.message && (err.message.includes('too long') || err.message.includes('data overflow'))) {
+            alert('文本太长了，请适当缩短 ✂️');
+          } else {
+            alert('二维码生成失败: ' + (err.message || '未知错误'));
+          }
+          throw err;
+        });
+    };
+
+    // 重新绑定生成函数
+    const boundGenerate = window.generateQRCode;
+
+    // 替换原监听
+    generateBtn.removeEventListener('click', generateQRCode); // 之前绑定的匿名函数，不好移除，所以之前应该用命名函数，但我们改为直接使用新函数
+    // 由于最初绑定的匿名函数，需要解绑，最简单重新定义监听:
+    // 清空并重新绑定
+    generateBtn.replaceWith(generateBtn.cloneNode(true)); // 粗暴移除所有监听 (但会丢失样式？不影响，id不变)
+    // 重新获取新的按钮（clone后需要重新获取元素）
+    const newGenerateBtn = document.getElementById('generateBtn');
+    const newDownloadBtn = document.getElementById('downloadBtn'); // 下载按钮未变但也要重新获取? 实际上替换只替换了generateBtn, downloadBtn仍然是旧的，但为了避免混乱，我们重新获取全部
+    // 更稳健：直接重构事件绑定，不使用clone，而是用新的监听函数并移除旧的。但我们之前是用匿名函数，不能直接移除。所以采用命名函数或使用新的函数引用。
+    // 但为了代码简洁，我将在初始化时明确重写所有监听，并且保留之前样式。
+    // 简单方式：移除原有监听器很难，我们直接用最开始的绑定方式——在页面底部重新绑定。
+    // 由于上面的代码已经执行了一部分，最简单是移除所有监听，重新设置。
+    // 我们将采用重新设置策略。
+
+    // 重新获取元素引用（避免变量冲突）
+    const freshGenerate = document.getElementById('generateBtn');
+    const freshDownload = document.getElementById('downloadBtn');
+    const freshCanvas = document.getElementById('qrCanvas');
+    const freshTextarea = document.getElementById('textInput');
+
+    // 移除之前所有监听（通过替换克隆方式——简单重置）
+    // 但是这样会丢失之前绑定的加载完成生成的二维码？加载时已经生成一次，不再重复。
+    // 为保险，重新生成一次（如果之前失败导致空白，用默认再生成一次）
+    // 先保存上次有效图像，但我们现在直接生成一次。
+    // 为避免混乱，我采用一种更干净的方式：重新定义事件监听并覆盖。
+    // 使用新函数替换点击，但老监听还存在，所以我们需要移除。
+    // 直接使用 removeEventListener 需要函数引用，不好处理，所以使用克隆替换节点是最干脆的。
+    const generateParent = freshGenerate.parentNode;
+    const newGen = freshGenerate.cloneNode(true);
+    generateParent.replaceChild(newGen, freshGenerate);
+
+    // 同样处理下载按钮 (下载按钮不需要移除复杂的备份逻辑，但也要重新绑定，以防重复监听)
+    const downloadParent = freshDownload.parentNode;
+    const newDl = freshDownload.cloneNode(true);
+    downloadParent.replaceChild(newDl, freshDownload);
+
+    // 重新获取新元素
+    const genBtn = document.getElementById('generateBtn');
+    const dlBtn = document.getElementById('downloadBtn');
+    const qrCanvas = document.getElementById('qrCanvas');
+    const txtArea = document.getElementById('textInput');
+
+    // 备份变量重置
+    let lastImgData = null;
+
+    // 新生成函数 (使用闭包引用 lastImgData 和 qrCanvas)
+    function generateWithBackup(text) {
+      if (!text || text.trim() === '') {
+        alert('🍃 请输入一些文本再生成二维码～');
+        return Promise.reject('empty');
+      }
+      let previousImgData = null;
+      try {
+        const ctx = qrCanvas.getContext('2d');
+        previousImgData = ctx.getImageData(0, 0, qrCanvas.width, qrCanvas.height);
+      } catch (e) {}
+
+      const opts = { width: 250, margin: 2, color: { dark: '#000000', light: '#ffffff' }, errorCorrectionLevel: 'M' };
+
+      return QRCode.toCanvas(qrCanvas, text, opts)
+        .then(() => {
+          try {
+            const ctx = qrCanvas.getContext('2d');
+            lastImgData = ctx.getImageData(0, 0, qrCanvas.width, qrCanvas.height);
+          } catch (e) {}
+        })
+        .catch((err) => {
+          if (lastImgData) {
+            try {
+              const ctx = qrCanvas.getContext('2d');
+              ctx.putImageData(lastImgData, 0, 0);
+            } catch (e) {}
+          } else if (previousImgData) {
+            try {
+              const ctx = qrCanvas.getContext('2d');
+              ctx.putImageData(previousImgData, 0, 0);
+            } catch (e) {}
+          }
+          if (err.message && (err.message.includes('too long') || err.message.includes('data overflow'))) {
+            alert('文本太长了，请适当缩短 ✂️');
+          } else {
+            alert('生成失败: ' + (err.message || '未知错误'));
+          }
+          throw err;
+        });
+    }
+
+    // 生成按钮监听
+    genBtn.addEventListener('click', function() {
+      generateWithBackup(txtArea.value).catch(() => {});
+    });
+
+    // 下载按钮监听
+    dlBtn.addEventListener('click', function() {
+      const dataURL = qrCanvas.toDataURL('image/png');
+      const link = document.createElement('a');
+      link.download = 'qrcode.png';
+      link.href = dataURL;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    });
+
+    // 页面加载完成后，确保画布有默认二维码 (如果画布目前空白或者没有 lastImgData 则生成)
+    // 简单判断：如果没有lastImgData，就根据textarea值生成
+    if (!lastImgData) {
+      generateWithBackup(txtArea.value).catch(() => {});
+    }
+
+    // 快捷键重新绑定到新textarea
+    txtArea.addEventListener('keydown', function(e) {
+      if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+        e.preventDefault();
+        genBtn.click();
+      }
+    });
+
+    // 移动端生成时收起键盘
+    genBtn.addEventListener('mousedown', function() {
+      txtArea.blur();
+    });
+
+  })();
+</script>
+</body>
+</html>

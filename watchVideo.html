@@ -1,0 +1,572 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.5, user-scalable=yes">
+  <title>专用 · watchVideo 二维码生成器</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+    }
+
+    body {
+      min-height: 100vh;
+      background: linear-gradient(145deg, #f2f7fc 0%, #e6ecf3 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 1.5rem;
+    }
+
+    .card {
+      background: rgba(255, 255, 255, 0.9);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      border-radius: 2.5rem;
+      box-shadow: 0 25px 45px -12px rgba(0, 32, 64, 0.3), 0 2px 8px rgba(0,0,0,0.03);
+      padding: 2.2rem 2rem;
+      width: 100%;
+      max-width: 560px;
+      transition: all 0.2s ease;
+      border: 1px solid rgba(255, 255, 255, 0.5);
+    }
+
+    h2 {
+      font-size: 2rem;
+      font-weight: 600;
+      letter-spacing: -0.02em;
+      color: #0b2b3f;
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+      margin-bottom: 0.25rem;
+    }
+
+    h2 span {
+      background: #1e6f9f;
+      color: white;
+      font-size: 0.85rem;
+      font-weight: 500;
+      padding: 0.2rem 0.7rem;
+      border-radius: 30px;
+      margin-left: 0.5rem;
+      background: linear-gradient(135deg, #1e6f9f, #1a4e6f);
+    }
+
+    .sub {
+      color: #4d6575;
+      font-size: 0.95rem;
+      margin-bottom: 2rem;
+      font-weight: 400;
+      border-left: 3px solid #1e6f9f;
+      padding-left: 1rem;
+      background: rgba(30, 111, 159, 0.04);
+      border-radius: 0 8px 8px 0;
+    }
+
+    /* 固定格式卡片 */
+    .fixed-header {
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .fixed-header h3 {
+      font-size: 1.4rem;
+      font-weight: 600;
+      color: #0b2b3f;
+      letter-spacing: -0.01em;
+    }
+
+    .badge {
+      background: #3b6e8f;
+      color: white;
+      padding: 0.2rem 0.9rem;
+      border-radius: 30px;
+      font-size: 0.8rem;
+      font-weight: 500;
+    }
+
+    .format-hint {
+      background: #e4edf5;
+      border-radius: 2rem;
+      padding: 0.7rem 1.3rem;
+      margin-bottom: 1.8rem;
+      font-family: 'SF Mono', 'Fira Code', monospace;
+      font-size: 1rem;
+      color: #13415a;
+      border: 1px dashed #6f9dbb;
+      word-break: break-all;
+    }
+
+    .format-hint .fixed {
+      color: #2d4e66;
+      font-weight: 500;
+    }
+
+    .format-hint .variable {
+      background: #fdefb0;
+      padding: 0.1rem 0.4rem;
+      border-radius: 14px;
+      font-weight: 600;
+      color: #a5650e;
+    }
+
+    .input-group {
+      display: flex;
+      flex-direction: column;
+      gap: 1.5rem;
+      margin-bottom: 2rem;
+    }
+
+    .input-row {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 0.8rem;
+    }
+
+    .input-row label {
+      width: 95px;
+      font-weight: 550;
+      color: #1e4f6b;
+      font-size: 1rem;
+    }
+
+    .input-row input, .input-row .fake-input {
+      flex: 1 1 220px;
+      padding: 0.7rem 1.2rem;
+      border: 2px solid #d0dee9;
+      border-radius: 2rem;
+      font-size: 1rem;
+      background: white;
+      transition: 0.15s;
+    }
+
+    .input-row input:focus {
+      border-color: #1e6f9f;
+      outline: none;
+      box-shadow: 0 0 0 3px rgba(30,111,159,0.15);
+    }
+
+    .row-hint {
+      margin-left: calc(95px + 1rem);
+      font-size: 0.85rem;
+      color: #587a92;
+      margin-top: -0.5rem;
+    }
+
+    .preview-box {
+      background: #f5faff;
+      border-radius: 2rem;
+      padding: 1rem 1.5rem;
+      font-size: 1rem;
+      border: 1px solid #c3ddee;
+      color: #0c384f;
+      margin: 0.5rem 0 1.5rem;
+      word-break: break-all;
+      font-family: monospace;
+      box-shadow: inset 0 1px 4px #cddae6;
+    }
+
+    .preview-box strong {
+      color: #1e6f9f;
+      font-weight: 600;
+    }
+
+    .action-btn {
+      display: flex;
+      justify-content: center;
+      margin: 1.2rem 0 1.8rem;
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, #1a4e6f, #266489);
+      border: none;
+      color: white;
+      padding: 0.9rem 2rem;
+      font-size: 1.2rem;
+      font-weight: 600;
+      border-radius: 3rem;
+      box-shadow: 0 12px 22px -10px #1a4e6f;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.6rem;
+      min-width: 240px;
+      justify-content: center;
+    }
+
+    .btn-primary:hover {
+      background: linear-gradient(135deg, #1e5f82, #1f6d94);
+      transform: scale(1.02);
+      box-shadow: 0 16px 26px -10px #0e3f5b;
+    }
+
+    .canvas-container {
+      background: #ffffff;
+      border-radius: 2rem;
+      padding: 1.5rem;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      box-shadow: inset 0 0 0 1px rgba(0,0,0,0.02), 0 15px 25px -16px #0f2e40;
+      margin: 1.8rem 0 1.2rem;
+      border: 1px solid rgba(255, 255, 255, 0.6);
+    }
+
+    canvas {
+      display: block;
+      width: 100%;
+      max-width: 250px;
+      height: auto;
+      border-radius: 1.2rem;
+      box-shadow: 0 5px 12px rgba(0, 30, 50, 0.1);
+      background: white;
+    }
+
+    .download-row {
+      display: flex;
+      justify-content: center;
+    }
+
+    .btn-download {
+      background: white;
+      border: 1px solid #1e6f9f;
+      color: #1a4e6f;
+      padding: 0.7rem 2rem;
+      font-size: 1.1rem;
+      font-weight: 570;
+      border-radius: 3rem;
+      cursor: pointer;
+      transition: 0.15s;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      box-shadow: 0 6px 14px -8px #133d55;
+    }
+
+    .btn-download:hover {
+      background: #ecf3fa;
+      transform: translateY(-2px);
+    }
+
+    .hint {
+      text-align: center;
+      color: #587a92;
+      font-size: 0.9rem;
+      margin-top: 1rem;
+      background: rgba(255,255,255,0.5);
+      padding: 0.4rem 1.2rem;
+      border-radius: 50px;
+      width: fit-content;
+      margin-left: auto;
+      margin-right: auto;
+    }
+
+    footer {
+      margin-top: 1rem;
+      font-size: 0.75rem;
+      color: #8ba0b2;
+      text-align: center;
+    }
+  </style>
+</head>
+<body>
+
+<div class="card">
+  <h2>
+    ⏯️ watchVideo 码
+    <span>专用生成器</span>
+  </h2>
+  <div class="sub">固定格式 · 联动有效期 · 一键转换</div>
+
+  <!-- 固定格式说明 -->
+  <div class="fixed-header">
+    <h3>📐 格式模板</h3>
+    <span class="badge">不可变部分</span>
+  </div>
+  <div class="format-hint">
+    <span class="fixed">watchVideo;</span><span class="variable">ID</span><span class="fixed">;400;400;</span><span class="variable">时间戳</span>
+  </div>
+
+  <!-- 输入区域：ID + 日期时间 / 有效期 -->
+  <div class="input-group">
+    <!-- ID 输入 -->
+    <div class="input-row">
+      <label>🔑 可变ID</label>
+      <input type="text" id="idInput" placeholder="例如 12345 或 abc" value="12345">
+    </div>
+
+    <!-- 日期时间选择（精确到分钟） -->
+    <div class="input-row">
+      <label>📅 目标时间</label>
+      <input type="datetime-local" id="datetimeInput" value="">
+    </div>
+
+    <!-- 有效期（分钟）输入，与上方双向联动 -->
+    <div class="input-row">
+      <label>⏳ 有效期(分钟)</label>
+      <input type="number" id="minutesInput" min="0" value="30" step="1" style="flex:1 1 140px;">
+      <span style="color:#587a92; margin-left:0.3rem;">（相对当前时间）</span>
+    </div>
+    <div class="row-hint">
+      ⚡ 修改任意一项，另一项自动联动（基于当前时刻）
+    </div>
+  </div>
+
+  <!-- 实时预览拼接字符串 -->
+  <div class="preview-box" id="previewText">
+    <strong>预览字符串:</strong> watchVideo;12345;400;400;1772169319
+  </div>
+
+  <!-- 生成二维码按钮 -->
+  <div class="action-btn">
+    <button class="btn-primary" id="generateFixedBtn">
+      <span>⚡</span> 生成二维码
+    </button>
+  </div>
+
+  <!-- 二维码展示区 -->
+  <div class="canvas-container">
+    <canvas id="qrCanvas" width="250" height="250"></canvas>
+  </div>
+
+  <!-- 下载按钮 -->
+  <div class="download-row">
+    <button class="btn-download" id="downloadBtn">
+      <span>⬇️</span> 下载 PNG
+    </button>
+  </div>
+
+  <div class="hint">
+    <i>🕒</i> 时间戳基于目标时间生成（秒级）
+  </div>
+  <footer>修改ID或时间后点击生成 · 有效期自动计算</footer>
+</div>
+
+<!-- 二维码库 -->
+<script src="./qrcode.min.js"></script>
+
+<script>
+  (function() {
+    // DOM 元素
+    const idInput = document.getElementById('idInput');
+    const datetimeInput = document.getElementById('datetimeInput');
+    const minutesInput = document.getElementById('minutesInput');
+    const previewSpan = document.getElementById('previewText');
+    const generateBtn = document.getElementById('generateFixedBtn');
+    const downloadBtn = document.getElementById('downloadBtn');
+    const canvas = document.getElementById('qrCanvas');
+
+    // ------ 初始化日期时间为当前时间 + 默认30分钟 -----
+    function getDefaultDateTime() {
+      const now = new Date();
+      const defaultMinutes = 30;
+      const target = new Date(now.getTime() + defaultMinutes * 60 * 1000);
+      return target;
+    }
+
+    // 将 Date 对象格式化为 datetime-local 字符串 (YYYY-MM-DDTHH:MM)
+    function formatToDateTimeLocal(date) {
+      const year = date.getFullYear();
+      const month = String(date.getMonth() + 1).padStart(2, '0');
+      const day = String(date.getDate()).padStart(2, '0');
+      const hour = String(date.getHours()).padStart(2, '0');
+      const minute = String(date.getMinutes()).padStart(2, '0');
+      return `${year}-${month}-${day}T${hour}:${minute}`;
+    }
+
+    // 设置初始值：当前时间 + 30分钟
+    const initialTarget = getDefaultDateTime();
+    datetimeInput.value = formatToDateTimeLocal(initialTarget);
+    minutesInput.value = 30;  // 默认30分钟
+
+    // ------ 核心联动逻辑 -----
+    // 防无限循环标记
+    let updating = false;
+
+    // 更新时间输入框（分钟）根据日期时间
+    function updateMinutesFromDatetime() {
+      if (updating) return;
+      updating = true;
+
+      const datetimeStr = datetimeInput.value;
+      if (!datetimeStr) return;
+
+      const targetDate = new Date(datetimeStr); // 本地时间解释
+      const now = new Date();
+      const diffMs = targetDate - now;
+      const diffMinutes = Math.round(diffMs / 60000); // 四舍五入到分钟
+
+      minutesInput.value = diffMinutes;
+
+      updating = false;
+    }
+
+    // 更新日期时间根据分钟输入
+    function updateDatetimeFromMinutes() {
+      if (updating) return;
+      updating = true;
+
+      let mins = parseFloat(minutesInput.value);
+      if (isNaN(mins)) mins = 0;
+      const now = new Date();
+      const targetDate = new Date(now.getTime() + mins * 60 * 1000);
+      datetimeInput.value = formatToDateTimeLocal(targetDate);
+
+      updating = false;
+    }
+
+    // 监听事件
+    datetimeInput.addEventListener('input', () => {
+      updateMinutesFromDatetime();
+      updatePreview();  // 预览更新
+    });
+
+    minutesInput.addEventListener('input', () => {
+      updateDatetimeFromMinutes();
+      updatePreview();
+    });
+
+    // ID修改时也要更新预览
+    idInput.addEventListener('input', updatePreview);
+
+    // ------ 预览字符串 + 获取完整固定格式 -----
+    function getFixedFormatString() {
+      const id = idInput.value.trim() || '12345';
+      const datetimeStr = datetimeInput.value;
+
+      let timestamp = Math.floor(Date.now() / 1000); // 默认当前时间戳
+      if (datetimeStr) {
+        const targetDate = new Date(datetimeStr); // 本地时间
+        if (!isNaN(targetDate.getTime())) {
+          timestamp = Math.floor(targetDate.getTime() / 1000);
+        }
+      }
+
+      const fullString = `watchVideo;${id};400;400;${timestamp}`;
+      return fullString;
+    }
+
+    function updatePreview() {
+      const full = getFixedFormatString();
+      previewSpan.innerHTML = `<strong>预览字符串:</strong> ${full}`;
+    }
+
+    // 初始化预览
+    updatePreview();
+
+    // ------ 二维码生成（带备份）------
+    let lastValidImageData = null;
+
+    function generateQRCode(text) {
+      if (!text || text.trim() === '') {
+        alert('请输入有效文本');
+        return Promise.reject('empty');
+      }
+
+      let previousImageData = null;
+      try {
+        const ctx = canvas.getContext('2d');
+        previousImageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+      } catch (e) {}
+
+      const options = {
+        width: 250,
+        margin: 2,
+        color: { dark: '#000000', light: '#ffffff' },
+        errorCorrectionLevel: 'M'
+      };
+
+      return QRCode.toCanvas(canvas, text, options)
+        .then(() => {
+          try {
+            const ctx = canvas.getContext('2d');
+            lastValidImageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+          } catch (e) {}
+        })
+        .catch((err) => {
+          if (lastValidImageData) {
+            try {
+              const ctx = canvas.getContext('2d');
+              ctx.putImageData(lastValidImageData, 0, 0);
+            } catch (e) {}
+          } else if (previousImageData) {
+            try {
+              const ctx = canvas.getContext('2d');
+              ctx.putImageData(previousImageData, 0, 0);
+            } catch (e) {}
+          }
+
+          if (err.message && (err.message.includes('too long') || err.message.includes('data overflow'))) {
+            alert('文本太长，请适当缩短');
+          } else {
+            alert('生成失败: ' + (err.message || '未知错误'));
+          }
+          throw err;
+        });
+    }
+
+    // 初始生成（根据默认值）
+    generateQRCode(getFixedFormatString()).catch(() => {});
+
+    // 生成按钮点击
+    generateBtn.addEventListener('click', () => {
+      generateQRCode(getFixedFormatString()).catch(() => {});
+      // 收起键盘
+      idInput.blur();
+      datetimeInput.blur();
+      minutesInput.blur();
+    });
+
+    // 下载按钮
+    downloadBtn.addEventListener('click', () => {
+      const dataURL = canvas.toDataURL('image/png');
+      const link = document.createElement('a');
+      link.download = 'watchvideo_qr.png';
+      link.href = dataURL;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    });
+
+    // 额外：防止手动输入无效分钟联动出错，当分钟输入失去焦点时，如果值为空或NaN，重置为0
+    minutesInput.addEventListener('blur', () => {
+      let val = parseFloat(minutesInput.value);
+      if (isNaN(val)) {
+        minutesInput.value = 0;
+        updateDatetimeFromMinutes();
+        updatePreview();
+      }
+    });
+
+    // 日期时间失去焦点时，如果无效则重置为当前时间+0分钟
+    datetimeInput.addEventListener('blur', () => {
+      if (!datetimeInput.value) {
+        // 设置为当前时间
+        const now = new Date();
+        datetimeInput.value = formatToDateTimeLocal(now);
+        updateMinutesFromDatetime();
+        updatePreview();
+      } else {
+        // 确保是合法日期，否则重置
+        const d = new Date(datetimeInput.value);
+        if (isNaN(d.getTime())) {
+          const now = new Date();
+          datetimeInput.value = formatToDateTimeLocal(now);
+          updateMinutesFromDatetime();
+          updatePreview();
+        }
+      }
+    });
+
+  })();
+</script>
+</body>
+</html>
